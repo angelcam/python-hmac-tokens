@@ -32,7 +32,7 @@ def test_basic():
     # wrong token
     message =  fmt % (time.time(), 10)
     token = sign_msg(message, bad_secret)
-    assert verify_token(token, good_secret) == True
+    assert verify_token(token, good_secret) == False
 
 def test_invalid():
     fmt_string = '{ "time" : %s, "timeout" : %s }'
