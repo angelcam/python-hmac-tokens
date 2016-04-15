@@ -14,7 +14,7 @@ def encode(data, secret):
     sig = hmac.new(secret, data_b64, hashlib.sha256)
     return (data_b64, sig.hexdigest())
 
-def verify_token(token, secret, picoseconds=False, **kwargs):
+def verify_token(token, secret, microseconds=False, **kwargs):
     """
     Verify the HMAC token sent by client.
 
@@ -50,7 +50,7 @@ def verify_token(token, secret, picoseconds=False, **kwargs):
             return False
 
         payload_time = int(payload["time"])
-        if picoseconds:
+        if microseconds:
             payload_time = payload_time / 1000000
 
         payload_timeout = int(payload["timeout"])
