@@ -32,38 +32,43 @@ def verify_token(token, secret, picoseconds=False, **kwargs):
         debug("Message or signature missing")
         return False
 
-    message_b64, client_sig = parts
-    message = base64.b64decode(message_b64)
+    try:
+        message_b64, client_sig = parts
+        message = base64.b64decode(message_b64)
 
-    # encode message with server key for verification
-    server_sig = encode(message, secret)[1]
+        # encode message with server key for verification
+        server_sig = encode(message, secret)[1]
 
-    if client_sig != server_sig:
-        debug("Signature verification failed")
-        return False
-
-    payload = json.loads(message)
-
-    if not (payload["time"] and payload["timeout"]):
-        debug("Time of timeout missing")
-        return False
-
-    payload_time = int(payload["time"])
-    if picoseconds:
-        payload_time = payload_time / 1000000
-
-    payload_timeout = int(payload["timeout"])
-
-    current = int(time.time())
-
-    if not (payload_time - payload_timeout <= current <= payload_time + 2 * payload_timeout):
-        debug("Time validation failed")
-        return False
-
-    # check the message contains all attributes from kwargs (and the value)
-    for arg in kwargs:
-        if payload.get(arg, None) != kwargs[arg]:
-            debug("Extra field %s verification failed" % arg)
+        if client_sig != server_sig:
+            debug("Signature verification failed")
             return False
 
-    return True
+        payload = json.loads(message)
+
+        if not (payload["time"] and payload["timeout"]):
+            debug("Time of timeout missing")
+            return False
+
+        payload_time = int(payload["time"])
+        if picoseconds:
+            payload_time = payload_time / 1000000
+
+        payload_timeout = int(payload["timeout"])
+
+        current = int(time.time())
+
+        if not (payload_time - payload_timeout <= current <= payload_time + 2 * payload_timeout):
+            debug("Time validation failed")
+            return False
+
+        # check the message contains all attributes from kwargs (and the value)
+        for arg in kwargs:
+            if payload.get(arg, None) != kwargs[arg]:
+                debug("Extra field %s verification failed" % arg)
+                return False
+
+        return True
+
+    except ValueError as e:
+        debug("Invalid data received: %s" % e)
+        return False

@@ -34,6 +34,12 @@ def test_basic():
     token = sign_msg(message, bad_secret)
     assert verify_token(token, good_secret) == True
 
+def test_invalid():
+    fmt_string = '{ "time" : %s, "timeout" : %s }'
+    message =  fmt_string % ("foo", "bar")
+    token = sign_msg(message, good_secret)
+    assert verify_token(token, good_secret) == False
+
 def test_kwargs():
     message =  fmt % (time.time(), 10)
     token = sign_msg(message, good_secret)
