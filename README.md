@@ -28,6 +28,22 @@ Time and timeout attributes are automatically verified. If you need to verify ad
 
 Rtspcon uses higher-precision timestamps which can be enabled by ```microseconds=True``.
 
+### Testing ###
+
+Python 2
+
+```
+sudo pip install -e .
+py.test
+```
+
+Python 3
+
+```
+sudo pip3 install -e .
+python3 /usr/local/bin/py.test
+```
+
 ### TODO ###
 
 * Add client-side token generation
