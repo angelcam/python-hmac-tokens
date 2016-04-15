@@ -10,8 +10,8 @@ def debug(msg):
 
 #returns (data in base64, HMAC in hexdigest)
 def encode(data, secret):
-    data_b64 = base64.b64encode(data)
-    sig = hmac.new(secret, data_b64, hashlib.sha256)
+    data_b64 = base64.b64encode(data.encode('utf-8'))
+    sig = hmac.new(secret.encode('utf-8'), data_b64, hashlib.sha256)
     return (data_b64, sig.hexdigest())
 
 def verify_token(token, secret, microseconds=False, **kwargs):
@@ -34,7 +34,7 @@ def verify_token(token, secret, microseconds=False, **kwargs):
 
     try:
         message_b64, client_sig = parts
-        message = base64.b64decode(message_b64)
+        message = base64.b64decode(message_b64).decode('utf-8')
 
         # encode message with server key for verification
         server_sig = encode(message, secret)[1]

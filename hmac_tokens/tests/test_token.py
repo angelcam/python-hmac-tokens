@@ -9,9 +9,9 @@ good_secret = "1234567890abcdef1234567890abcdef"
 bad_secret = "11111111111111111111111111111111"
 
 def sign_msg(message, secret):
-    msg_b64 = base64.b64encode(message)
-    sig = hmac.new(secret, msg_b64, hashlib.sha256)
-    return '%s.%s' % (msg_b64, sig.hexdigest())
+    msg_b64 = base64.b64encode(message.encode('utf-8'))
+    sig = hmac.new(secret.encode('utf-8'), msg_b64, hashlib.sha256)
+    return '%s.%s' % (msg_b64.decode('utf-8'), sig.hexdigest())
 
 fmt = '{ "time" : %d, "timeout" : %d }'
 fmt_alias = '{ "time" : %d, "timeout" : %d, "alias" : "%s" }'
