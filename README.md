@@ -26,7 +26,11 @@ verify_token(token, secret)
 
 Time and timeout attributes are automatically verified. If you need to verify addition attributes, pass them as kwargs, e.g. ```verify_token(token, secret, alias=123)```.
 
-Rtspcon uses higher-precision timestamps which can be enabled by ```microseconds=True``.
+Rtspcon uses higher-precision timestamps which can be enabled by ```microseconds=True```:
+
+```
+verify_token(token, secret, microseconds=True, alias=123)
+```
 
 ### Testing ###
 
