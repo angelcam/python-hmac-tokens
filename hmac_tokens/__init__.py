@@ -1,3 +1,3 @@
-from .token import verify_token
+from .token import verify_token, gen_token
 
-__all__ = [verify_token]
+__all__ = [verify_token, gen_token]
