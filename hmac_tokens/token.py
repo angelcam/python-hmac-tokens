@@ -104,4 +104,4 @@ def gen_token(secret, token_time=None, timeout=60, microseconds=False, **kwargs)
 
     parts = encode(json.dumps(payload), secret)
     print(json.dumps(payload))
-    return ".".join(parts)
+    return "{}.{}".format(parts[0].decode('utf-8'), parts[1])
