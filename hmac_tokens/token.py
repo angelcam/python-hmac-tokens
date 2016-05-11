@@ -72,3 +72,36 @@ def verify_token(token, secret, microseconds=False, **kwargs):
     except ValueError as e:
         debug("Invalid data received: %s" % e)
         return False
+
+def gen_token(secret, token_time=None, timeout=60, microseconds=False, **kwargs):
+    """
+    Generate HMAC token to be sent to server.
+
+    Arguments
+    - token_time: if no time is provided, use current time
+    - timestamp: validity of the token in seconds
+    - microseconds: use microseconds precision (for rtspcon)
+    - all other kwargs are added to the token (e.g. camera_id,...)
+    """
+
+    if not secret:
+        raise ValueError("Secret is required")
+
+    if not token_time:
+        token_time = int(time.time())
+
+    if microseconds:
+        token_time = token_time * 1000000
+        timeout = timeout * 1000000
+
+    payload = {
+        'time': token_time,
+        'timeout' : timeout,
+    }
+
+    for arg in kwargs:
+       payload[arg] = kwargs[arg]
+
+    parts = encode(json.dumps(payload), secret)
+    print(json.dumps(payload))
+    return ".".join(parts)
