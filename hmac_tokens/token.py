@@ -14,23 +14,22 @@ def encode(data, secret):
     sig = hmac.new(secret.encode('utf-8'), data_b64, hashlib.sha256)
     return (data_b64, sig.hexdigest())
 
-def verify_token(token, secret, microseconds=False, **kwargs):
+def decode_token(token, secret, microseconds=False):
     """
-    Verify the HMAC token sent by client.
+    Verify a given token and return its content. The method returns a
+    dictionary containing token fields or None if the token is invalid.
 
     Checks that the:
     - message is signed with proper secret
     - timeout is not experied
-    - any additional kwargs are present in the message (e.g. camera alias)
     """
-
     if not (token and secret):
-        return False
+        return None
 
     parts = token.split(".")
     if len(parts) != 2:
         debug("Message or signature missing")
-        return False
+        return None
 
     try:
         message_b64, client_sig = parts
@@ -41,13 +40,13 @@ def verify_token(token, secret, microseconds=False, **kwargs):
 
         if client_sig != server_sig:
             debug("Signature verification failed")
-            return False
+            return None
 
         payload = json.loads(message)
 
         if not (payload["time"] and payload["timeout"]):
             debug("Time of timeout missing")
-            return False
+            return None
 
         payload_time = int(payload["time"])
         if microseconds:
@@ -59,19 +58,34 @@ def verify_token(token, secret, microseconds=False, **kwargs):
 
         if not (payload_time - payload_timeout <= current <= payload_time + 2 * payload_timeout):
             debug("Time validation failed")
+            return None
+
+        return payload
+
+    except Exception as e:
+        debug("Invalid data received: %s" % e)
+        return None
+
+def verify_token(token, secret, microseconds=False, **kwargs):
+    """
+    Verify the HMAC token sent by client.
+
+    Checks that the:
+    - message is signed with proper secret
+    - timeout is not experied
+    - any additional kwargs are present in the message (e.g. camera alias)
+    """
+    payload = decode_token(token, secret, microseconds)
+    if payload is None:
+        return False
+
+    # check if the message contains all attributes from kwargs (and their values)
+    for arg in kwargs:
+        if payload.get(arg, None) != kwargs[arg]:
+            debug("Extra field %s verification failed" % arg)
             return False
 
-        # check the message contains all attributes from kwargs (and the value)
-        for arg in kwargs:
-            if payload.get(arg, None) != kwargs[arg]:
-                debug("Extra field %s verification failed" % arg)
-                return False
-
-        return True
-
-    except ValueError as e:
-        debug("Invalid data received: %s" % e)
-        return False
+    return True
 
 def gen_token(secret, token_time=None, timeout=60, microseconds=False, **kwargs):
     """
@@ -79,7 +93,7 @@ def gen_token(secret, token_time=None, timeout=60, microseconds=False, **kwargs)
 
     Arguments
     - token_time: if no time is provided, use current time
-    - timestamp: validity of the token in seconds
+    - timeout: validity of the token in seconds
     - microseconds: use microseconds precision (for rtspcon)
     - all other kwargs are added to the token (e.g. camera_id,...)
     """
@@ -88,11 +102,12 @@ def gen_token(secret, token_time=None, timeout=60, microseconds=False, **kwargs)
         raise ValueError("Secret is required")
 
     if not token_time:
-        token_time = int(time.time())
+        token_time = time.time()
 
     if microseconds:
         token_time = token_time * 1000000
-        timeout = timeout * 1000000
+
+    token_time = int(token_time)
 
     payload = {
         'time': token_time,

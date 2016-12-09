@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="hmac_tokens",
-    version='1.1.2',
+    version='1.2.0',
     description="Angelcam HMAC token helpers",
     keywords="hmac api token",
     author="Angelcam",
